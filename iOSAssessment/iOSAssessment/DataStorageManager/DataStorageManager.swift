@@ -13,32 +13,35 @@ class DataStorageManager {
     
     //MARK: - Properties
     static var shared = DataStorageManager()
-    private let realm: Realm
+    private let realm: Realm?
     
     private init() {
-        self.realm = try! Realm()
+        self.realm = try? Realm()
     }
     
     //MARK: - Following method will save the data into realm database
     func saveData<T:Object>(data: [T]) {
-        try! realm.write {
-            realm.add(data, update: .modified)
+        try? realm?.write {
+            realm?.add(data, update: .modified)
         }
     }
     
     //MARK: - Following method will fetch the data from realm database
-    func fetchData<T:Object>(obj:T.Type) -> (data: [T],containsData: Bool) {
-        var boolValue:Bool = true
-        if realm.objects(T.self).isEmpty {
-            boolValue =  false
+    func fetchData<T:Object>(obj:T.Type) -> [T]? {
+        if let realm = realm?.objects(T.self) {
+            if !realm.isEmpty {
+                return (Array(realm))
+            }
         }
-        return (Array(realm.objects(T.self)), boolValue )
+        return (nil)
     }
     
     //MARK: - Following method will delete the data from realm database
     func deleteAll<T:Object>(obj: T.Type) {
-        try! realm.write {
-            realm.delete( realm.objects(T.self))
+        try? realm?.write {
+            if let obj = realm?.objects(T.self) {
+                realm?.delete(obj)
+            }
         }
     }
 }

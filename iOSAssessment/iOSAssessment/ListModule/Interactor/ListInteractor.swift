@@ -23,7 +23,6 @@ class ListInteractor: ListPresenterToListInteractorProtocol {
         }
         self.networkManager.getRequest(url: url, type: [ListModel].self) { [weak self] data, error in
             guard let self = self else { return }
-            
             if error == nil, let data = data, data.count > 0 {
                 DispatchQueue.main.async {
                     self.dataStorage.deleteAll(obj: ListModel.self)
@@ -32,11 +31,16 @@ class ListInteractor: ListPresenterToListInteractorProtocol {
                     self.presenter?.universityListFetched()
                 }
             } else {
-                if DataStorageManager.shared.fetchData(obj: ListModel.self).containsData {
-                    self.universityList = dataStorage.fetchData(obj: ListModel.self).data
+                if let _ = dataStorage.fetchData(obj: ListModel.self) {
+                    self.universityList = dataStorage.fetchData(obj: ListModel.self)
                     self.presenter?.universityListFetched()
                 } else {
-                    self.presenter?.universityListFetchedFailed(with: .NoDataFound)
+                    switch error {
+                    case .NoNetwork:
+                        self.presenter?.universityListFetchedFailed(with: .NoNetwork)
+                    default:
+                        self.presenter?.universityListFetchedFailed(with: .NoDataFound)
+                    }
                 }
             }
         }
